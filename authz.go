@@ -9,8 +9,13 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"utils"
 )
+
+type StringList []string
+
+func (s StringList) Len() int           { return len(s) }
+func (s StringList) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s StringList) Less(i, j int) bool { return s[i] < s[j] }
 
 type CMSAuth struct {
 	afile string
@@ -46,7 +51,7 @@ func (a *CMSAuth) checkAuthentication(headers http.Header) bool {
 	for kkk, _ := range headers {
 		hkeys = append(hkeys, kkk)
 	}
-	sort.Sort(utils.StringList(hkeys))
+	sort.Sort(StringList(hkeys))
 	var prefix, suffix, hmacValue string
 	for _, kkk := range hkeys {
 		values := headers[kkk]
