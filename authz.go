@@ -89,6 +89,9 @@ func (a *CMSAuth) checkAuthorization(header http.Header) bool {
 
 // public function to perfom Authentication and Authorization
 func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
+	if len(a.afile) == "" { // no auth file is provided
+		return true
+	}
 	status := a.checkAuthentication(header)
 	if !status {
 		return status
