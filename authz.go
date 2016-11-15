@@ -29,7 +29,8 @@ func (a *CMSAuth) Init(afile string) {
 		hkey, err := ioutil.ReadFile(afile)
 		if err != nil {
 			msg := fmt.Sprintf("CMSAuth, unable to read %s, error %v", afile, err)
-			panic(msg)
+			fmt.Println(msg)
+			return
 		}
 		a.hkey = hkey
 	}
