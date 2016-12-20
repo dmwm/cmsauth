@@ -49,7 +49,7 @@ func (a *CMSAuth) checkAuthentication(headers http.Header) bool {
 		return true
 	}
 	var hkeys []string
-	for kkk, _ := range headers {
+	for kkk := range headers {
 		hkeys = append(hkeys, kkk)
 	}
 	sort.Sort(StringList(hkeys))
