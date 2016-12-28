@@ -11,18 +11,20 @@ import (
 	"strings"
 )
 
+// StringList allows to sort string keys
 type StringList []string
 
 func (s StringList) Len() int           { return len(s) }
 func (s StringList) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s StringList) Less(i, j int) bool { return s[i] < s[j] }
 
+// CMSAuth is a generic type which holds auth. file and associated key
 type CMSAuth struct {
 	afile string
 	hkey  []byte
 }
 
-// initialize CMSAuth auth file, i.e. read the key
+// Init method initializes CMSAuth auth file, i.e. read the key
 func (a *CMSAuth) Init(afile string) {
 	a.afile = afile
 	if len(afile) != 0 {
@@ -88,7 +90,7 @@ func (a *CMSAuth) checkAuthorization(header http.Header) bool {
 	return true
 }
 
-// public function to perfom Authentication and Authorization
+// CheckAuthnAuthz function perfoms Authentication and Authorization
 func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
 	if a.afile == "" { // no auth file is provided
 		return true
