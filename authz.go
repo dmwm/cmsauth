@@ -89,7 +89,10 @@ func (a *CMSAuth) checkAuthentication(headers http.Header) bool {
 func (a *CMSAuth) GetHmac(r *http.Request) (string, error) {
 	var hkeys []string
 	for h, _ := range r.Header {
-		hkeys = append(hkeys, h)
+		key := strings.ToLower(h)
+		if (strings.HasPrefix(key, "cms-authn") || strings.HasPrefix(key, "cms-authz")) && key != "cms-authn-hmac" {
+			hkeys = append(hkeys, h)
+		}
 	}
 	var prefix, suffix string
 	sort.Sort(StringList(hkeys))
