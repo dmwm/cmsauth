@@ -85,6 +85,27 @@ func (a *CMSAuth) checkAuthentication(headers http.Header) bool {
 	return true
 }
 
+// GetHmac calculates hmac value from request headers
+func (a *CMSAuth) GetHmac(r *http.Request) (string, error) {
+	var hkeys []string
+	for h, _ := range r.Header {
+		hkeys = append(hkeys, h)
+	}
+	var prefix, suffix string
+	sort.Sort(StringList(hkeys))
+	for _, h := range hkeys {
+		v := r.Header.Get(h)
+		prefix = fmt.Sprintf("%sh%xv%x", prefix, len(h), len(v))
+		suffix = fmt.Sprintf("%s%s%s", suffix, strings.ToLower(h), v)
+	}
+	val := fmt.Sprintf("%s#%s", prefix, suffix)
+	var sha1hex hash.Hash
+	sha1hex = hmac.New(sha1.New, a.hkey)
+	sha1hex.Write([]byte(val))
+	hmac := fmt.Sprintf("%x", sha1hex.Sum(nil))
+	return hmac, nil
+}
+
 // helper function to perform authorization action
 func (a *CMSAuth) checkAuthorization(header http.Header) bool {
 	return true
