@@ -11,8 +11,8 @@ import (
 	"os"
 )
 
-// CricRecords list to hold CMS CRIC entries
-var CricRecords map[string]CricEntry
+// CricRecords defines type for CRIC records
+type CricRecords map[string]CricEntry
 
 // CricEntry represents structure in CRIC entry (used by CMS headers)
 type CricEntry struct {
@@ -36,8 +36,8 @@ func (c *CricEntry) String() string {
 	return r
 }
 
-// helper function to download CRIC data
-func getCricData(rurl string, verbose bool) (map[string]CricEntry, error) {
+// GetCricData downloads CRIC data
+func GetCricData(rurl string, verbose bool) (map[string]CricEntry, error) {
 	cricRecords := make(map[string]CricEntry)
 	var entries []CricEntry
 	tr := &http.Transport{
@@ -90,8 +90,8 @@ func getCricData(rurl string, verbose bool) (map[string]CricEntry, error) {
 	return cricRecords, nil
 }
 
-// helper function to parse CRIC file
-func parseCric(fname string, verbose bool) (map[string]CricEntry, error) {
+// ParseCric allows to parse CRIC file
+func ParseCric(fname string, verbose bool) (map[string]CricEntry, error) {
 	cricRecords := make(map[string]CricEntry)
 	var entries []CricEntry
 	if _, err := os.Stat(fname); err == nil {

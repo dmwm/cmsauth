@@ -130,8 +130,8 @@ func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
 	return a.checkAuthorization(header)
 }
 
-// helper function to set CMS headers based on provider user data
-func SetCMSHeaders(r *http.Request, userData map[string]interface{}, cricRecords CricRecords) {
+// SetCMSHeaders sets HTTP headers for given http request based on on provider user and CRIC data
+func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}, cricRecords CricRecords, verbose bool) {
 	// set cms auth headers
 	r.Header.Set("cms-auth-status", "ok")
 	r.Header.Set("cms-authn-name", iString(userData["name"]))
@@ -155,8 +155,7 @@ func SetCMSHeaders(r *http.Request, userData map[string]interface{}, cricRecords
 	r.Header.Set("cms-auth-expire", iString(userData["exp"]))
 	r.Header.Set("cms-session", iString(userData["session_state"]))
 	r.Header.Set("cms-request-uri", r.URL.Path)
-	hmac, err := CMSAuth.GetHmac(r, Config.Verbose)
-	if err == nil {
+	if hmac, err := a.GetHmac(r, verbose); err == nil {
 		r.Header.Set("cms-authn-hmac", hmac)
 	}
 }
