@@ -129,3 +129,48 @@ func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
 	}
 	return a.checkAuthorization(header)
 }
+
+// helper function to set CMS headers based on provider user data
+func SetCMSHeaders(r *http.Request, userData map[string]interface{}, cricRecords CricRecords) {
+	// set cms auth headers
+	r.Header.Set("cms-auth-status", "ok")
+	r.Header.Set("cms-authn-name", iString(userData["name"]))
+	login := iString(userData["cern_upn"])
+	if rec, ok := cricRecords[login]; ok {
+		// set DN
+		r.Header.Set("cms-authn-dn", rec.DN)
+		r.Header.Set("cms-auth-cert", rec.DN)
+		// set group roles
+		for k, v := range rec.Roles {
+			key := fmt.Sprintf("cms-authz-%s", k)
+			val := strings.Join(v, " ")
+			r.Header.Set(key, val)
+		}
+	}
+	r.Header.Set("cms-authn-login", login)
+	r.Header.Set("cms-authn-method", "X509Cert")
+	r.Header.Set("cms-cern-id", iString(userData["cern_person_id"]))
+	r.Header.Set("cms-email", iString(userData["email"]))
+	r.Header.Set("cms-auth-time", iString(userData["auth_time"]))
+	r.Header.Set("cms-auth-expire", iString(userData["exp"]))
+	r.Header.Set("cms-session", iString(userData["session_state"]))
+	r.Header.Set("cms-request-uri", r.URL.Path)
+	hmac, err := CMSAuth.GetHmac(r, Config.Verbose)
+	if err == nil {
+		r.Header.Set("cms-authn-hmac", hmac)
+	}
+}
+
+// helper function to return string representation of interface value
+func iString(v interface{}) string {
+	switch t := v.(type) {
+	case []byte:
+		return string(t)
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return fmt.Sprintf("%d", t)
+	case float32, float64:
+		return fmt.Sprintf("%d", int64(t.(float64)))
+	default:
+		return fmt.Sprintf("%v", t)
+	}
+}
