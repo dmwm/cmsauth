@@ -3,12 +3,14 @@ package cmsauth
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"strings"
 )
 
 // CricRecords defines type for CRIC records
@@ -74,7 +76,7 @@ func GetCricData(rurl string, verbose bool) (map[string]CricEntry, error) {
 	// convert list of entries into a map
 	for _, rec := range entries {
 		recDNs := rec.DNs
-		if r, ok := cricRecords[rec.Login]; ok {
+		if r, ok := cricRecords[rec.DN]; ok {
 			recDNs = r.DNs
 			recDNs = append(recDNs, rec.DN)
 			rec.DNs = recDNs
@@ -85,12 +87,12 @@ func GetCricData(rurl string, verbose bool) (map[string]CricEntry, error) {
 			recDNs = append(recDNs, rec.DN)
 			rec.DNs = recDNs
 		}
-		cricRecords[rec.Login] = rec
+		cricRecords[rec.DN] = rec
 	}
 	return cricRecords, nil
 }
 
-// ParseCric allows to parse CRIC file
+// ParseCric allows to parse CRIC file and use cric Login as a key for cric entry map
 func ParseCric(fname string, verbose bool) (map[string]CricEntry, error) {
 	cricRecords := make(map[string]CricEntry)
 	var entries []CricEntry
@@ -122,6 +124,56 @@ func ParseCric(fname string, verbose bool) (map[string]CricEntry, error) {
 				rec.DNs = recDNs
 			}
 			cricRecords[rec.Login] = rec
+		}
+	}
+	return cricRecords, nil
+}
+
+// ParseCricByKey allows to parse CRIC file use use provided key as a cric entry map
+func ParseCricByKey(fname, key string, verbose bool) (map[string]CricEntry, error) {
+	cricRecords := make(map[string]CricEntry)
+	var entries []CricEntry
+	if _, err := os.Stat(fname); err == nil {
+		jsonFile, err := os.Open(fname)
+		if err != nil {
+			log.Println(err)
+			return cricRecords, err
+		}
+		defer jsonFile.Close()
+		byteValue, err := ioutil.ReadAll(jsonFile)
+		if err != nil {
+			log.Println(err)
+			return cricRecords, err
+		}
+		json.Unmarshal(byteValue, &entries)
+		// convert list of entries into a map based on provided key
+		for _, rec := range entries {
+			var k string
+			if strings.ToLower(key) == "login" {
+				k = rec.Login
+			} else if strings.ToLower(key) == "id" {
+				k = fmt.Sprintf("%d", rec.ID)
+			} else if strings.ToLower(key) == "name" {
+				k = rec.Name
+			} else if strings.ToLower(key) == "dn" {
+				k = rec.DN
+			} else {
+				msg := fmt.Sprintf("provided key=%s is not supported", key)
+				return cricRecords, errors.New(msg)
+			}
+			recDNs := rec.DNs
+			if r, ok := cricRecords[k]; ok {
+				recDNs = r.DNs
+				recDNs = append(recDNs, rec.DN)
+				rec.DNs = recDNs
+				if verbose {
+					fmt.Printf("\nFound duplicate CRIC record\n%s\n%s\n", rec.String(), r.String())
+				}
+			} else {
+				recDNs = append(recDNs, rec.DN)
+				rec.DNs = recDNs
+			}
+			cricRecords[k] = rec
 		}
 	}
 	return cricRecords, nil

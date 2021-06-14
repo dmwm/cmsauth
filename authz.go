@@ -160,6 +160,38 @@ func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}
 	}
 }
 
+// SetCMSHeaders sets HTTP headers for given http request based on on provider user and CRIC data
+func (a *CMSAuth) SetCMSHeadersByKey(r *http.Request, userData map[string]interface{}, cricRecords CricRecords, key, method string, verbose bool) {
+	// set cms auth headers
+	r.Header.Set("cms-auth-status", "ok")
+	r.Header.Set("cms-authn-name", iString(userData["name"]))
+	if vvv, ok := userData[key]; ok {
+		val := iString(vvv)
+		if rec, ok := cricRecords[val]; ok {
+			// set DN
+			r.Header.Set("cms-authn-dn", rec.DN)
+			r.Header.Set("cms-auth-cert", rec.DN)
+			r.Header.Set("cms-authn-login", rec.Login)
+			r.Header.Set("cms-cern-id", iString(rec.ID))
+			// set group roles
+			for k, v := range rec.Roles {
+				key := fmt.Sprintf("cms-authz-%s", k)
+				val := strings.Join(v, " ")
+				r.Header.Set(key, val)
+			}
+		}
+	}
+	r.Header.Set("cms-authn-method", method)
+	r.Header.Set("cms-email", iString(userData["email"]))
+	r.Header.Set("cms-auth-time", iString(userData["auth_time"]))
+	r.Header.Set("cms-auth-expire", iString(userData["exp"]))
+	r.Header.Set("cms-session", iString(userData["session_state"]))
+	r.Header.Set("cms-request-uri", r.URL.Path)
+	if hmac, err := a.GetHmac(r, verbose); err == nil {
+		r.Header.Set("cms-authn-hmac", hmac)
+	}
+}
+
 // helper function to return string representation of interface value
 func iString(v interface{}) string {
 	switch t := v.(type) {
