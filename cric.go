@@ -47,18 +47,6 @@ func GetCricDataByKey(rurl, key string, verbose bool) (map[string]CricEntry, err
 	}
 	// convert list of entries into a map
 	for _, rec := range entries {
-		recDNs := rec.DNs
-		if r, ok := cricRecords[rec.DN]; ok {
-			recDNs = r.DNs
-			recDNs = append(recDNs, rec.DN)
-			rec.DNs = recDNs
-			if verbose {
-				fmt.Printf("\nFound duplicate CRIC record\n%s\n%s\n", rec.String(), r.String())
-			}
-		} else {
-			recDNs = append(recDNs, rec.DN)
-			rec.DNs = recDNs
-		}
 		var k string
 		if strings.ToLower(key) == "login" {
 			k = rec.Login
@@ -71,6 +59,18 @@ func GetCricDataByKey(rurl, key string, verbose bool) (map[string]CricEntry, err
 		} else {
 			msg := fmt.Sprintf("provided key=%s is not supported", key)
 			return cricRecords, errors.New(msg)
+		}
+		recDNs := rec.DNs
+		if r, ok := cricRecords[k]; ok {
+			recDNs = r.DNs
+			recDNs = append(recDNs, rec.DN)
+			rec.DNs = recDNs
+			if verbose {
+				fmt.Printf("\nFound duplicate CRIC record\n%s\n%s\n", rec.String(), r.String())
+			}
+		} else {
+			recDNs = append(recDNs, rec.DN)
+			rec.DNs = recDNs
 		}
 		cricRecords[k] = rec
 	}
