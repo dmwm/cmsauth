@@ -1,7 +1,6 @@
 package cmsauth
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -40,10 +39,7 @@ func (c *CricEntry) String() string {
 func GetCricData(rurl string, verbose bool) (map[string]CricEntry, error) {
 	cricRecords := make(map[string]CricEntry)
 	var entries []CricEntry
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := http.Client{Transport: tr}
+	client := HttpClient()
 	req, err := http.NewRequest("GET", rurl, nil)
 	if err != nil {
 		return cricRecords, err
