@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -121,7 +121,7 @@ func GetCricEntries(rurl string, verbose bool) ([]CricEntry, error) {
 		dump, err := httputil.DumpRequestOut(req, true)
 		log.Printf("http request: headers %v, request %v, response %s, error %v", req.Header, req, string(dump), err)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Unable to read response, %v", resp)
 		return entries, err
@@ -147,7 +147,7 @@ func ParseCric(fname string, verbose bool) (map[string]CricEntry, error) {
 			return cricRecords, err
 		}
 		defer jsonFile.Close()
-		byteValue, err := ioutil.ReadAll(jsonFile)
+		byteValue, err := io.ReadAll(jsonFile)
 		if err != nil {
 			log.Println(err)
 			return cricRecords, err
@@ -184,7 +184,7 @@ func ParseCricByKey(fname, key string, verbose bool) (map[string]CricEntry, erro
 			return cricRecords, err
 		}
 		defer jsonFile.Close()
-		byteValue, err := ioutil.ReadAll(jsonFile)
+		byteValue, err := io.ReadAll(jsonFile)
 		if err != nil {
 			log.Println(err)
 			return cricRecords, err

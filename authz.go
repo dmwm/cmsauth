@@ -5,8 +5,8 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"hash"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 )
@@ -28,7 +28,7 @@ type CMSAuth struct {
 func (a *CMSAuth) Init(afile string) {
 	a.afile = afile
 	if len(afile) != 0 {
-		hkey, err := ioutil.ReadFile(afile)
+		hkey, err := os.ReadFile(afile)
 		if err != nil {
 			msg := fmt.Sprintf("CMSAuth, unable to read %s, error %v", afile, err)
 			fmt.Println(msg)
