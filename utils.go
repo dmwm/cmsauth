@@ -27,7 +27,7 @@ var Verbose int
 // TLSCertsRenewInterval controls interval to re-read TLS certs (in seconds)
 var TLSCertsRenewInterval time.Duration
 
-// TLSCerts holds TLS certificates for the server
+// TLSCertsManager holds TLS certificates for the server
 type TLSCertsManager struct {
 	Certs  []tls.Certificate
 	Expire time.Time
