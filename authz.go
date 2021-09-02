@@ -160,7 +160,7 @@ func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}
 	}
 }
 
-// SetCMSHeaders sets HTTP headers for given http request based on on provider user and CRIC data
+// SetCMSHeadersByKey sets HTTP headers for given http request based on on provider user and CRIC data
 func (a *CMSAuth) SetCMSHeadersByKey(r *http.Request, userData map[string]interface{}, cricRecords CricRecords, key, method string, verbose bool) {
 	// set cms auth headers
 	r.Header.Set("cms-auth-status", "ok")
