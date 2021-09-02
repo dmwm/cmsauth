@@ -88,7 +88,7 @@ func (a *CMSAuth) checkAuthentication(headers http.Header) bool {
 // GetHmac calculates hmac value from request headers
 func (a *CMSAuth) GetHmac(r *http.Request, verbose bool) (string, error) {
 	var hkeys []string
-	for h, _ := range r.Header {
+	for h := range r.Header {
 		key := strings.ToLower(h)
 		if (strings.HasPrefix(key, "cms-authn") || strings.HasPrefix(key, "cms-authz")) && key != "cms-authn-hmac" {
 			hkeys = append(hkeys, h)
