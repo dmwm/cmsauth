@@ -130,6 +130,20 @@ func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
 	return a.checkAuthorization(header)
 }
 
+// CheckCMSAuthz function perfoms CMS Authorization
+func (a *CMSAuth) CheckCMSAuthz(header http.Header, role, group, site string) bool {
+	for key, vals := range header {
+		if strings.HasPrefix(key, "cms-authz") && strings.Contains(key, role) {
+			for _, v := range vals {
+				if strings.Contains(v, group) || strings.Contains(v, site) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 // SetCMSHeaders sets HTTP headers for given http request based on on provider user and CRIC data
 func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}, cricRecords CricRecords, verbose bool) {
 	// set cms auth headers
