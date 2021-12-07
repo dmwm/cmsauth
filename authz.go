@@ -118,7 +118,7 @@ func (a *CMSAuth) checkAuthorization(header http.Header) bool {
 	return true
 }
 
-// CheckAuthnAuthz function perfoms Authentication and Authorization
+// CheckAuthnAuthz function performs Authentication and Authorization
 func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
 	if a.afile == "" { // no auth file is provided
 		return true
@@ -130,7 +130,8 @@ func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
 	return a.checkAuthorization(header)
 }
 
-// CheckCMSAuthz function perfoms CMS Authorization
+// CheckCMSAuthz function performs CMS Authorization based on provided
+// role and group or site attributes
 func (a *CMSAuth) CheckCMSAuthz(header http.Header, role, group, site string) bool {
 	for key, vals := range header {
 		if strings.HasPrefix(key, "cms-authz") && strings.Contains(key, role) {
