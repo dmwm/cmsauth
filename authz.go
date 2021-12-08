@@ -134,9 +134,10 @@ func (a *CMSAuth) CheckAuthnAuthz(header http.Header) bool {
 // role and group or site attributes
 func (a *CMSAuth) CheckCMSAuthz(header http.Header, role, group, site string) bool {
 	for key, vals := range header {
-		if strings.HasPrefix(key, "cms-authz") && strings.Contains(key, role) {
-			for _, v := range vals {
-				if strings.Contains(v, group) || strings.Contains(v, site) {
+		if strings.HasPrefix(strings.ToLower(key), "cms-authz") && strings.Contains(strings.ToLower(key), role) {
+			for _, val := range vals {
+				v := strings.ToLower(val)
+				if strings.Contains(v, strings.ToLower(group)) || strings.Contains(v, strings.ToLower(site)) {
 					return true
 				}
 			}

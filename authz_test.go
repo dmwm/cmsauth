@@ -18,6 +18,10 @@ func TestCheckCMSAuthz(t *testing.T) {
 	res := cmsAuth.CheckCMSAuthz(header, role, group, site)
 	assert.Equal(t, res, false)
 
+	header["Cms-Authz-Operator"] = []string{"group:dbs"}
+	res = cmsAuth.CheckCMSAuthz(header, role, group, site)
+	assert.Equal(t, res, true)
+
 	header["cms-authz-operator"] = []string{"group:dbs"}
 	res = cmsAuth.CheckCMSAuthz(header, role, group, site)
 	assert.Equal(t, res, true)
