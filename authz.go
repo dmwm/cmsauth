@@ -163,6 +163,30 @@ func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}
 			r.Header.Set(key, val)
 		}
 	}
+	// check that we properly set cms-auth-cert header if it is not set assign DN value to it
+	if r.Header.Get("Cms-Auth-Cert") == "" {
+		if dn, ok := userData["dn"]; ok {
+			r.Header.Set("Cms-Auth-Cert", dn.(string))
+		}
+	}
+	// if CMS user has multiple user DNs then we should set his/her DN properly based on list matched DN
+	if dnValue, ok := userData["dn"]; ok {
+		dn := dnValue.(string)
+		if r.Header.Get("Cms-Authn-Dn") != dn {
+			r.Header.Set("dn", dn)
+			r.Header.Set("cms-authn-dn", dn)
+			r.Header.Set("cms-auth-cert", dn)
+		}
+	}
+	// set all DNs if user have them
+	if val, ok := userData["dns"]; ok {
+		switch dns := val.(type) {
+		case []string:
+			for _, dn := range dns {
+				r.Header.Add("dns", dn)
+			}
+		}
+	}
 	r.Header.Set("cms-authn-login", login)
 	r.Header.Set("cms-authn-method", "X509Cert")
 	r.Header.Set("cms-cern-id", iString(userData["cern_person_id"]))
