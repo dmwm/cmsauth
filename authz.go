@@ -63,6 +63,7 @@ func (a *CMSAuth) checkAuthentication(headers http.Header) bool {
 			prefix += fmt.Sprintf("h%xv%x", len(key), len(values[0]))
 			suffix += fmt.Sprintf("%s%s", key, values[0])
 			if strings.HasPrefix(key, "cms-authn") {
+				// here the new header "Dn" appears, i.e. cms-authn-dn => dn
 				headers[strings.Replace(key, "cms-authn-", "", 1)] = values
 			}
 		}
@@ -189,7 +190,6 @@ func setDNHeaders(r *http.Request, userData map[string]interface{}) {
 	if dnValue, ok := userData["dn"]; ok {
 		dn := dnValue.(string)
 		if r.Header.Get("Cms-Authn-Dn") != dn {
-			r.Header.Set("dn", dn)
 			r.Header.Set("cms-authn-dn", dn)
 			r.Header.Set("cms-auth-cert", dn)
 		}
@@ -199,7 +199,7 @@ func setDNHeaders(r *http.Request, userData map[string]interface{}) {
 		switch dns := val.(type) {
 		case []string:
 			for _, dn := range dns {
-				r.Header.Add("dns", dn)
+				r.Header.Add("Cms-DNs", dn)
 			}
 		}
 	}
