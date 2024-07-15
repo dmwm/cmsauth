@@ -163,6 +163,22 @@ func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}
 			r.Header.Set(key, val)
 		}
 	}
+	setDNHeaders(r, userData)
+	r.Header.Set("cms-authn-login", login)
+	r.Header.Set("cms-authn-method", "X509Cert")
+	r.Header.Set("cms-cern-id", iString(userData["cern_person_id"]))
+	r.Header.Set("cms-email", iString(userData["email"]))
+	r.Header.Set("cms-auth-time", iString(userData["auth_time"]))
+	r.Header.Set("cms-auth-expire", iString(userData["exp"]))
+	r.Header.Set("cms-session", iString(userData["session_state"]))
+	r.Header.Set("cms-request-uri", r.URL.Path)
+	if hmac, err := a.GetHmac(r, verbose); err == nil {
+		r.Header.Set("cms-authn-hmac", hmac)
+	}
+}
+
+// helper function to check and set proper CMS DN values in HTTP header
+func setDNHeaders(r *http.Request, userData map[string]interface{}) {
 	// check that we properly set cms-auth-cert header if it is not set assign DN value to it
 	if r.Header.Get("Cms-Auth-Cert") == "" {
 		if dn, ok := userData["dn"]; ok {
@@ -187,17 +203,6 @@ func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}
 			}
 		}
 	}
-	r.Header.Set("cms-authn-login", login)
-	r.Header.Set("cms-authn-method", "X509Cert")
-	r.Header.Set("cms-cern-id", iString(userData["cern_person_id"]))
-	r.Header.Set("cms-email", iString(userData["email"]))
-	r.Header.Set("cms-auth-time", iString(userData["auth_time"]))
-	r.Header.Set("cms-auth-expire", iString(userData["exp"]))
-	r.Header.Set("cms-session", iString(userData["session_state"]))
-	r.Header.Set("cms-request-uri", r.URL.Path)
-	if hmac, err := a.GetHmac(r, verbose); err == nil {
-		r.Header.Set("cms-authn-hmac", hmac)
-	}
 }
 
 // SetCMSHeadersByKey sets HTTP headers for given http request based on on provider user and CRIC data
@@ -221,6 +226,7 @@ func (a *CMSAuth) SetCMSHeadersByKey(r *http.Request, userData map[string]interf
 			}
 		}
 	}
+	setDNHeaders(r, userData)
 	r.Header.Set("cms-authn-method", method)
 	r.Header.Set("cms-email", iString(userData["email"]))
 	r.Header.Set("cms-auth-time", iString(userData["auth_time"]))
