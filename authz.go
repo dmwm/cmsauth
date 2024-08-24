@@ -153,9 +153,12 @@ func (a *CMSAuth) SetCMSHeaders(r *http.Request, userData map[string]interface{}
 	r.Header.Set("cms-auth-status", "ok")
 	r.Header.Set("cms-authn-name", iString(userData["name"]))
 	login := iString(userData["cern_upn"])
-	if rec, ok := cricRecords[login]; ok {
+	dn := iString(userData["dn"])
+	sortedDN := GetSortedDN(dn)
+	if rec, ok := cricRecords[sortedDN]; ok {
 		// set DN
 		r.Header.Set("cms-authn-dn", rec.DN)
+		r.Header.Set("cms-authn-sorted-dn", rec.SortedDN)
 		r.Header.Set("cms-auth-cert", rec.DN)
 		// set group roles
 		for k, v := range rec.Roles {

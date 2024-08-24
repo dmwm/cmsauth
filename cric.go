@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -17,12 +18,13 @@ type CricRecords map[string]CricEntry
 
 // CricEntry represents structure in CRIC entry (used by CMS headers)
 type CricEntry struct {
-	DN    string              `json:"DN"`    // CRIC DN
-	DNs   []string            `json:"DNs"`   // List of all DNs assigned to user
-	ID    int64               `json:"ID"`    // CRIC ID
-	Login string              `json:"LOGIN"` // CRIC Login name
-	Name  string              `json:"NAME"`  // CRIC user name
-	Roles map[string][]string `json:"ROLES"` // CRIC user roles
+	DN       string              `json:"DN"`       // CRIC DN
+	DNs      []string            `json:"DNs"`      // List of all DNs assigned to user
+	SortedDN string              `json:"SortedDN"` // Sorted DN string
+	ID       int64               `json:"ID"`       // CRIC ID
+	Login    string              `json:"LOGIN"`    // CRIC Login name
+	Name     string              `json:"NAME"`     // CRIC user name
+	Roles    map[string][]string `json:"ROLES"`    // CRIC user roles
 }
 
 // String returns string representation of CricEntry
@@ -128,13 +130,39 @@ func getCricRecordsByKey(entries []CricEntry, key string, verbose bool) (map[str
 	return cricRecords, nil
 }
 
+// GetSortedDN function translates given dn to sorted string
+func GetSortedDN(dn string) string {
+	dnParts := []string{}
+	parts := strings.Split(dn, "/")
+	sort.Strings(parts)
+	for _, value := range parts {
+		if !contains(dnParts, value) {
+			dnParts = append(dnParts, value)
+		}
+	}
+	sortedDN := strings.Replace(strings.Join(dnParts, "/"), "//", "/", -1)
+	return sortedDN
+}
+
+// contains checks if a slice contains a specific value
+func contains(list []string, value string) bool {
+	for _, v := range list {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
 // helper function to get cric records from list of cric entries
 func getCricRecords(entries []CricEntry, verbose bool) (map[string]CricEntry, error) {
 	cricRecords := make(map[string]CricEntry)
 	// convert list of entries into a map
 	for _, rec := range entries {
 		recDNs := rec.DNs
-		if r, ok := cricRecords[rec.Login]; ok {
+		// the cricRecords map will contain sorted DN
+		sortedDN := GetSortedDN(rec.DN)
+		if r, ok := cricRecords[sortedDN]; ok {
 			recDNs = r.DNs
 			recDNs = append(recDNs, rec.DN)
 			rec.DNs = recDNs
@@ -145,7 +173,8 @@ func getCricRecords(entries []CricEntry, verbose bool) (map[string]CricEntry, er
 			recDNs = append(recDNs, rec.DN)
 			rec.DNs = recDNs
 		}
-		cricRecords[rec.Login] = rec
+		rec.SortedDN = sortedDN
+		cricRecords[sortedDN] = rec
 	}
 	return cricRecords, nil
 }
