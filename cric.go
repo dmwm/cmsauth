@@ -11,10 +11,14 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 )
 
 // CricRecords defines type for CRIC records
 type CricRecords map[string]CricEntry
+
+// mutex keeps lock for cricRecords updates
+var mutex sync.RWMutex
 
 // CricEntry represents structure in CRIC entry (used by CMS headers)
 type CricEntry struct {
@@ -114,7 +118,10 @@ func getCricRecordsByKey(entries []CricEntry, key string, verbose bool) (map[str
 			return cricRecords, errors.New(msg)
 		}
 		recDNs := rec.DNs
-		if r, ok := cricRecords[k]; ok {
+		mutex.RLock()
+		r, ok := cricRecords[k]
+		mutex.RUnlock()
+		if ok {
 			recDNs = r.DNs
 			recDNs = append(recDNs, rec.DN)
 			rec.DNs = recDNs
@@ -125,7 +132,9 @@ func getCricRecordsByKey(entries []CricEntry, key string, verbose bool) (map[str
 			recDNs = append(recDNs, rec.DN)
 			rec.DNs = recDNs
 		}
+		mutex.Lock()
 		cricRecords[k] = rec
+		mutex.Unlock()
 	}
 	return cricRecords, nil
 }
@@ -162,7 +171,10 @@ func getCricRecords(entries []CricEntry, verbose bool) (map[string]CricEntry, er
 		recDNs := rec.DNs
 		// the cricRecords map will contain sorted DN
 		sortedDN := GetSortedDN(rec.DN)
-		if r, ok := cricRecords[sortedDN]; ok {
+		mutex.RLock()
+		r, ok := cricRecords[sortedDN]
+		mutex.RUnlock()
+		if ok {
 			recDNs = r.DNs
 			recDNs = append(recDNs, rec.DN)
 			rec.DNs = recDNs
@@ -174,7 +186,9 @@ func getCricRecords(entries []CricEntry, verbose bool) (map[string]CricEntry, er
 			rec.DNs = recDNs
 		}
 		rec.SortedDN = sortedDN
+		mutex.Lock()
 		cricRecords[sortedDN] = rec
+		mutex.Unlock()
 	}
 	return cricRecords, nil
 }
@@ -201,7 +215,9 @@ func ParseCric(fname string, verbose bool) (map[string]CricEntry, error) {
 			log.Println(err)
 			return cricRecords, err
 		}
+		mutex.Lock()
 		cricRecords = cmap
+		mutex.Unlock()
 	}
 	return cricRecords, nil
 }
@@ -228,7 +244,9 @@ func ParseCricByKey(fname, key string, verbose bool) (map[string]CricEntry, erro
 			log.Println(err)
 			return cricRecords, err
 		}
+		mutex.Lock()
 		cricRecords = cmap
+		mutex.Unlock()
 	}
 	return cricRecords, nil
 }
